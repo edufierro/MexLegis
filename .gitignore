@@ -102,3 +102,10 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Other stuff
+.idea/
+.DS_Store
+
+# Data folder for this project:
+data/
