@@ -109,3 +109,7 @@ venv.bak/
 
 # Data folder for this project:
 data/
+
+# Parser files
+html.parser
+lxml
