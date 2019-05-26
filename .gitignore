@@ -113,3 +113,7 @@ data/
 # Parser files
 html.parser
 lxml
+
+# Data files
+*.pdf
+*.txt
