@@ -8,22 +8,17 @@ from utils import remove_temp
 
 class MexLegScrapper:
 
-    def __init__(self, legislatura, url_to_scrape):
+    def __init__(self, legislatura, url_to_scrape, out_folder=):
         self.legislatura = legislatura
         self.url_to_scrape = url_to_scrape  # TODO: Get this url automatically through post method
+        self.all_iniciativas_table = None
 
     def get_post_url(self):
         raise NotImplemented
 
-    @staticmethod
-    def _get_page_soup(current_url, timeout=200):
-        with urllib.request.urlopen(current_url, timeout=timeout) as f:
-            time.sleep(2)
-            page = f.read()
+    def parse_legislatura(self, legislatura):
+        if self.url_to_scrape
 
-        soup = BeautifulSoup(page, features="lxml")
-
-        return soup
 
     @classmethod
     def _get_page_table(cls, soup):
@@ -51,14 +46,31 @@ class MexLegScrapper:
 
         return onclick_urls
 
+    @classmethod
+    def _download_pdf_from_table(cls, iniciativa_url):
+
+        soup_iniciativa = cls._get_page_soup(iniciativa_url, tsleep=0.5)
+        urls_iniciativa = soup_iniciativa.find_all(href=True)
+        urls_iniciativa = [x.get('href') for x in urls_iniciativa]
+        urls_iniciativa = [x for x in urls_iniciativa if x.split('.')[-1]=='pdf']
+
+        if len(urls_iniciativa) > 1:
+            raise AttributeError('More pdfs found in {}'.format(iniciativa_url))
+
+        if len(urls_iniciativa) == 0:
+            raise AttributeError('No pdf found in {}'.format(iniciativa_url))
+
+        return urls_iniciativa[0]
+
     @staticmethod
-    def _get_pdf_from_url(iniciativa_url, timeout=200):
-        with urllib.request.urlopen(iniciativa_url, timeout=timeout) as f:
-            time.sleep(0.5)
+    def _get_page_soup(current_url, timeout=200, tsleep=2.0):
+        with urllib.request.urlopen(current_url, timeout=timeout) as f:
+            time.sleep(tsleep)
             page = f.read()
 
-        soup_iniciativa = BeautifulSoup(page, features="lxml")
-        all_urls = soup_iniciativa.find_all('a', href=True)
+        soup = BeautifulSoup(page, features="lxml")
+
+        return soup
 
     @staticmethod
     def _parse_html_table(table):
@@ -106,21 +118,9 @@ class MexLegScrapper:
 
 
 
-    # Scrape for the LXIII Legislatura
+# Scrape for the LXIII Legislatura
 url = 'http://sil.gobernacion.gob.mx/Busquedas/Basica/ResultadosBusquedaBasica.php?SID=00026758073a8aec07544e9fe9074b68&Serial=173dc986d689043187bd882164410a7b&Reg=2405&Origen=BB&Paginas=15'
 current_url = url
 timeout = 200
 
 main_page = 'http://sil.gobernacion.gob.mx/portal/AsuntosLegislativos/busquedaBasica'
-
-
-def get_soup(my_url):
-    try:
-        html = urllib.request.urlopen(my_url)
-    except HTTPError as e:
-        return None
-    try:
-        bsObj = BeautifulSoup(html.read())
-        return bsObj
-    except AttributeError as e:
-        return None
