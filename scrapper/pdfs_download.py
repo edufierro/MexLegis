@@ -1,23 +1,32 @@
+# -*- coding: utf-8 -*-
+
 import urllib
 import pandas as pd
 import time
 import re
 from bs4 import BeautifulSoup
-from utils import remove_temp
+from utils import check_create_output_folder
 
 
 class MexLegScrapper:
 
-    def __init__(self, legislatura, url_to_scrape, out_folder=):
+    def __init__(self, legislatura, url_to_scrape, data_folder, out_folder=None):
         self.legislatura = legislatura
         self.url_to_scrape = url_to_scrape  # TODO: Get this url automatically through post method
         self.all_iniciativas_table = None
+        self.data_folder = data_folder
+        self.out_folder = check_create_output_folder(out_folder)
 
     def get_post_url(self):
-        raise NotImplemented
+        # TODO: Parse url automatically
+        raise NotImplementedError
 
-    def parse_legislatura(self, legislatura):
-        if self.url_to_scrape
+    def parse_legislatura(self):
+        # TODO: Parse url automatically
+        raise NotImplementedError
+
+    def dump_pdfs(self):
+        pass
 
 
     @classmethod
