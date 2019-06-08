@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
+
 import os
+from pathlib import Path
 
 
 def remove_temp(filepath):
@@ -6,3 +9,18 @@ def remove_temp(filepath):
         os.remove(filepath)
     except FileNotFoundError:
         pass
+
+
+class FolderExistsError(Exception):
+    pass
+
+
+def check_create_output_folder(out_folder):
+
+    path_folder = Path(out_folder)
+    if path_folder.exists():
+        raise FolderExistsError()
+    else:
+        path_folder.mkdir()
+
+    return path_folder
