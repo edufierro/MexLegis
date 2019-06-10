@@ -1,25 +1,26 @@
 # -*- coding: utf-8 -*-
 
 import urllib
+import uuid
 import pandas as pd
 import time
 import re
 from bs4 import BeautifulSoup
-from utils.file_utils import check_create_output_folder
+
 from utils.click_utlis import info, error, warn
 
 
 class MexLegScrapper:
 
-    def __init__(self, url_to_scrape, pdf_folder_name, txt_folder_name, table_name):
+    def __init__(self, url_to_scrape, pdf_folder_path, txt_folder_path, table_file_path):
 
         self.url_to_scrape = url_to_scrape  # TODO: Get this url automatically through post method
         self.main_page = 'http://sil.gobernacion.gob.mx'
-        self.all_iniciativas_table = table_name
-        self.pdf_folder_name = check_create_output_folder(pdf_folder_name)
-        self.txt_folder_name = check_create_output_folder(txt_folder_name)
+        self.table_file_path = table_file_path
+        self.pdf_folder_path = pdf_folder_path
+        self.txt_folder_path = txt_folder_path
 
-        self.main_table = None
+        self.main_table = pd.DataFrame()
 
     def get_post_url(self):
         # TODO: Parse url automatically
@@ -35,9 +36,15 @@ class MexLegScrapper:
             page_table['onclicks'] = page_urls
             if page_table.shape[1] != 13:
                 error('Inconsistent table lengths, exiting', fatal=True)
-            self.main_table.append(page_table)
+            self.main_table = self.main_table.append(page_table)
 
-        self.main_table.to_csv(self.all_iniciativas_table)
+        self.main_table = self._assign_uudis_to_pandas_df(self.main_table)
+        self.main_table.to_csv(self.table_file_path)
+
+    def download_pdfs(self):
+        list_of_urls = list(self.main_table.onclicks)
+        for current_url in list_of_urls:
+            pass
 
     def _soups_generator(self):
         idx = 0
@@ -48,7 +55,7 @@ class MexLegScrapper:
             page_soup, should_continue = self._get_soup_and_continue_token(url_to_scrape)
 
             if idx % 5 == 0:
-                info('Advance: {}...'.format(idx))
+                info('Advance: {} pages...'.format(idx))
 
             if should_continue is False:
                 finished_yielding = True
@@ -60,10 +67,10 @@ class MexLegScrapper:
     def _get_soup_and_continue_token(cls, web_page):
         page_soup = cls._get_page_soup(web_page)
         is_bad = page_soup.find('td', {"class": "simpletextorange"})
-        if is_bad.contents:
-            return None, True
+        if is_bad is not None:
+            return None, False
         else:
-            return page_soup, False
+            return page_soup, True
 
     @classmethod
     def _get_page_table(cls, soup):
@@ -89,7 +96,7 @@ class MexLegScrapper:
         return onclick_urls
 
     @classmethod
-    def _download_pdf_from_table(cls, iniciativa_url):
+    def _get_pdf_url_from_table(cls, iniciativa_url):
 
         soup_iniciativa = cls._get_page_soup(iniciativa_url, tsleep=0.5)
         urls_iniciativa = soup_iniciativa.find_all(href=True)
@@ -105,7 +112,22 @@ class MexLegScrapper:
         return urls_iniciativa[0]
 
     @staticmethod
+    def _assign_uudis_to_pandas_df(pandas_df):
+
+        warn('Resseting index of the dataframe')
+        pandas_df.reset_index(inplace=True)
+
+        pandas_df['iniciativa_id'] = None
+        for row in range(pandas_df.shape[0]):
+            pandas_df.at[row, 'iniciativa_id'] = uuid.uuid1().hex
+
+        return pandas_df
+
+    @staticmethod
     def _get_page_soup(current_url, timeout=200, tsleep=2.0):
+
+        # TODO: Handle gracefully HTTPErrors and implement retrials with higher timouts and tsleep.
+
         with urllib.request.urlopen(current_url, timeout=timeout) as f:
             time.sleep(tsleep)
             page = f.read()
@@ -116,6 +138,8 @@ class MexLegScrapper:
 
     @staticmethod
     def _parse_html_table(table):
+        # Function addapted from:
+        #    https://srome.github.io/Parsing-HTML-Tables-in-Python-with-BeautifulSoup-and-pandas/
         n_columns = 0
         n_rows = 0
         column_names = []
