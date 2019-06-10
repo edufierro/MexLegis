@@ -26,8 +26,8 @@ def check_create_output_folder(data_path, out_folder_name):
 
 def check_create_file_path(data_path, file_name):
 
-    filepath = Path(data_path) / file_name
-    if filepath.is_file():
+    file_path = Path(data_path) / file_name
+    if file_path.is_file():
         error('File {} exists in folder {}'.format(file_name, data_path), fatal=True)
 
-    return filepath
+    return file_path

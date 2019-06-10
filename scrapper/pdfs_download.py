@@ -6,6 +6,7 @@ import pandas as pd
 import time
 import re
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 
 from utils.click_utlis import info, error, warn
 
@@ -30,6 +31,8 @@ class MexLegScrapper:
         soups_generator = self._soups_generator()
 
         info('Beginning scrapping loop')
+        # TODO: Remove counter and debugging breaking loop
+        counter = 0
         for page_soup in soups_generator:
             page_table = self._get_page_table(page_soup)
             page_urls = self._get_table_urls(page_soup)
@@ -37,14 +40,33 @@ class MexLegScrapper:
             if page_table.shape[1] != 13:
                 error('Inconsistent table lengths, exiting', fatal=True)
             self.main_table = self.main_table.append(page_table)
+            if counter == 7:
+                break
+            else:
+                counter += 1
 
         self.main_table = self._assign_uudis_to_pandas_df(self.main_table)
         self.main_table.to_csv(self.table_file_path)
 
-    def download_pdfs(self):
-        list_of_urls = list(self.main_table.onclicks)
-        for current_url in list_of_urls:
-            pass
+    def download_pdfs(self, tsleep=2):
+
+        info('Downloading pdfs:')
+
+        for _, row in tqdm(self.main_table.iterrows(),
+                           desc='Iniciativas',
+                           total=self.main_table.shape[0]):
+
+            file_path = self.pdf_folder_path / row.iniciativa_id
+            opened_file = open(file_path, 'wb')
+
+            pdf_url = self._get_pdf_url_from_table(row)
+            web_file = urllib.urlopen(pdf_url)
+
+            opened_file.write(web_file.read())
+            web_file.close()
+            pdf_url.close()
+
+            time.sleep(tsleep)
 
     def _soups_generator(self):
         idx = 0
@@ -120,6 +142,8 @@ class MexLegScrapper:
         pandas_df['iniciativa_id'] = None
         for row in range(pandas_df.shape[0]):
             pandas_df.at[row, 'iniciativa_id'] = uuid.uuid1().hex
+
+        pandas_df.drop(['index', 'No.'], inplace=True, axis=1)
 
         return pandas_df
 
