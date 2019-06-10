@@ -5,29 +5,65 @@ import pandas as pd
 import time
 import re
 from bs4 import BeautifulSoup
-from utils import check_create_output_folder
+from utils.file_utils import check_create_output_folder
+from utils.click_utlis import info, error, warn
 
 
 class MexLegScrapper:
 
-    def __init__(self, legislatura, url_to_scrape, data_folder, out_folder=None):
-        self.legislatura = legislatura
+    def __init__(self, url_to_scrape, pdf_folder_name, txt_folder_name, table_name):
+
         self.url_to_scrape = url_to_scrape  # TODO: Get this url automatically through post method
-        self.all_iniciativas_table = None
-        self.data_folder = data_folder
-        self.out_folder = check_create_output_folder(out_folder)
+        self.main_page = 'http://sil.gobernacion.gob.mx'
+        self.all_iniciativas_table = table_name
+        self.pdf_folder_name = check_create_output_folder(pdf_folder_name)
+        self.txt_folder_name = check_create_output_folder(txt_folder_name)
+
+        self.main_table = None
 
     def get_post_url(self):
         # TODO: Parse url automatically
         raise NotImplementedError
 
-    def parse_legislatura(self):
-        # TODO: Parse url automatically
-        raise NotImplementedError
+    def create_main_table(self):
+        soups_generator = self._soups_generator()
 
-    def dump_pdfs(self):
-        pass
+        info('Beginning scrapping loop')
+        for page_soup in soups_generator:
+            page_table = self._get_page_table(page_soup)
+            page_urls = self._get_table_urls(page_soup)
+            page_table['onclicks'] = page_urls
+            if page_table.shape[1] != 13:
+                error('Inconsistent table lengths, exiting', fatal=True)
+            self.main_table.append(page_table)
 
+        self.main_table.to_csv(self.all_iniciativas_table)
+
+    def _soups_generator(self):
+        idx = 0
+        finished_yielding = False
+        while finished_yielding is False:
+            idx += 1
+            url_to_scrape = '{}&pagina={}'.format(self.url_to_scrape, idx)
+            page_soup, should_continue = self._get_soup_and_continue_token(url_to_scrape)
+
+            if idx % 5 == 0:
+                info('Advance: {}...'.format(idx))
+
+            if should_continue is False:
+                finished_yielding = True
+                warn('Finished scrapping at page {}'.format(idx))
+            else:
+                yield page_soup
+
+    @classmethod
+    def _get_soup_and_continue_token(cls, web_page):
+        page_soup = cls._get_page_soup(web_page)
+        is_bad = page_soup.find('td', {"class": "simpletextorange"})
+        if is_bad.contents:
+            return None, True
+        else:
+            return page_soup, False
 
     @classmethod
     def _get_page_table(cls, soup):
@@ -39,10 +75,7 @@ class MexLegScrapper:
 
         return main_table
 
-    @staticmethod
-    def _get_table_urls(soup):
-
-        main_page_ = 'http://sil.gobernacion.gob.mx'  # TODO: clear this once get_post_url is Implemented
+    def _get_table_urls(self, soup):
 
         all_urls = soup.find_all('a', href=True)
         onclick_urls = [x.get('onclick') for x in all_urls if x.get('onclick') is not None]
@@ -51,7 +84,7 @@ class MexLegScrapper:
         get_url_regex = re.compile('"[^"]*"')
 
         onclick_urls = [get_url_regex.findall(x)[0] for x in onclick_urls]
-        onclick_urls = ['{}{}'.format(main_page_, x.replace('\"', "")) for x in onclick_urls]
+        onclick_urls = ['{}{}'.format(self.main_page, x.replace('\"', "")) for x in onclick_urls]
 
         return onclick_urls
 
@@ -123,13 +156,3 @@ class MexLegScrapper:
                 row_marker += 1
 
         return df
-
-
-
-
-# Scrape for the LXIII Legislatura
-url = 'http://sil.gobernacion.gob.mx/Busquedas/Basica/ResultadosBusquedaBasica.php?SID=00026758073a8aec07544e9fe9074b68&Serial=173dc986d689043187bd882164410a7b&Reg=2405&Origen=BB&Paginas=15'
-current_url = url
-timeout = 200
-
-main_page = 'http://sil.gobernacion.gob.mx/portal/AsuntosLegislativos/busquedaBasica'

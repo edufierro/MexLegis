@@ -2,15 +2,24 @@
 
 import click
 import os
+from scrapper.pdfs_download import MexLegScrapper
 
 @click.command()
 @click.option(u'--sil-url', u'-url', type=str, required=True,
-              help=u'URL to sil search web page')
+              help='URL to sil search web page. Example: '
+                   'http://sil.gobernacion.gob.mx/Busquedas/Basica/ResultadosBusquedaBasica.php?SID=bc5018f4636aa88b40174fb6164460db&Origen=BB&Serial=f10e3813e027399d13ac9aa8fc7ce535&Reg=2472&Paginas=15') # NOQA
 @click.option(u'--data-path', u'-data', type=click.Path(), required=True,
               help=u'Path to data folder')
 @click.option(u'--pdfs-folder', u'-pdfs', type=str, required=True,
               help=u'PDFs folder name. Will be created inside data path')
 @click.option(u'--txt-folder', u'-txt', type=str, required=True,
               help=u'TXT folder name. Will be created inside data path')
-def scrape_bills(sil_url, data_path, pdfs_folder, txt_folder):
-    raise NotImplementedError
+@click.option(u'--main-data-file', u'-main', type=str, required=True, default='MainTable.csv',
+              help=u'Main table filename. Will be created')
+def scrape_bills(sil_url, data_path, pdfs_folder, txt_folder, main_data_file):
+
+    out_pdfs_folder = os.path.join(data_path, pdfs_folder)
+    out_txt_folder = os.path.join(data_path, txt_folder)
+    main_data_file = os.path.join(data_path, main_data_file)
+
+    bills_scrapper = MexLegScrapper()
