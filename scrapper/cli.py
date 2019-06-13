@@ -23,6 +23,6 @@ def scrape_bills(sil_url, data_path, pdfs_folder, txt_folder, main_data_file):
     out_pdfs_folder_path = check_create_output_folder(data_path, pdfs_folder)
     out_txt_folder_path = check_create_output_folder(data_path, txt_folder)
 
-    bills_scrapper = MexLegScrapper(sil_url, out_pdfs_folder_path, out_txt_folder_path, main_data_file)
+    bills_scrapper = MexLegScrapper(sil_url, out_pdfs_folder_path, main_data_file)
     bills_scrapper.create_main_table()
     bills_scrapper.download_pdfs()

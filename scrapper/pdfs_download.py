@@ -13,18 +13,17 @@ from utils.click_utlis import info, error, warn
 
 class MexLegScrapper:
 
-    def __init__(self, url_to_scrape, pdf_folder_path, txt_folder_path, table_file_path):
+    def __init__(self, url_to_scrape, pdf_folder_path, table_file_path):
 
         self.url_to_scrape = url_to_scrape  # TODO: Get this url automatically through post method
         self.main_page = 'http://sil.gobernacion.gob.mx'
         self.table_file_path = table_file_path
         self.pdf_folder_path = pdf_folder_path
-        self.txt_folder_path = txt_folder_path
 
         self.main_table = pd.DataFrame()
 
     def get_post_url(self):
-        # TODO: Parse url automatically
+        # TODO: Get url automatically from self.main_page, and not have to pass it manually
         raise NotImplementedError
 
     def create_main_table(self):
@@ -59,7 +58,7 @@ class MexLegScrapper:
             file_path = self.pdf_folder_path / row.iniciativa_id
             opened_file = open(file_path, 'wb')
 
-            pdf_url = self._get_pdf_url_from_table(row)
+            pdf_url = self._get_pdf_url_from_table(row.onclicks)
             web_file = urllib.urlopen(pdf_url)
 
             opened_file.write(web_file.read())
