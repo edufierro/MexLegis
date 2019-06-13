@@ -15,7 +15,7 @@ class MexLegScrapper:
 
     def __init__(self, url_to_scrape, pdf_folder_path, table_file_path):
 
-        self.url_to_scrape = url_to_scrape  # TODO: Get this url automatically through post method
+        self.url_to_scrape = url_to_scrape
         self.main_page = 'http://sil.gobernacion.gob.mx'
         self.table_file_path = table_file_path
         self.pdf_folder_path = pdf_folder_path
@@ -23,15 +23,13 @@ class MexLegScrapper:
         self.main_table = pd.DataFrame()
 
     def get_post_url(self):
-        # TODO: Get url automatically from self.main_page, and not have to pass it manually
+        # TODO: Get url_to_scrape automatically from self.main_page, and not have to pass it manually
         raise NotImplementedError
 
     def create_main_table(self):
         soups_generator = self._soups_generator()
 
         info('Beginning scrapping loop')
-        # TODO: Remove counter and debugging breaking loop
-        counter = 0
         for page_soup in soups_generator:
             page_table = self._get_page_table(page_soup)
             page_urls = self._get_table_urls(page_soup)
@@ -39,10 +37,6 @@ class MexLegScrapper:
             if page_table.shape[1] != 13:
                 error('Inconsistent table lengths, exiting', fatal=True)
             self.main_table = self.main_table.append(page_table)
-            if counter == 7:
-                break
-            else:
-                counter += 1
 
         self.main_table = self._assign_uudis_to_pandas_df(self.main_table)
         self.main_table.to_csv(self.table_file_path)
@@ -58,14 +52,12 @@ class MexLegScrapper:
             file_path = self.pdf_folder_path / '{}.pdf'.format(row.iniciativa_id)
             opened_pdf_file = open(file_path, 'wb')
 
-            pdf_url = self._get_pdf_url_from_table(row.onclicks)
+            pdf_url = self._get_pdf_url_from_table(row.onclicks, tsleep=tsleep)
             web_file = urllib.request.urlopen(pdf_url)
 
             opened_pdf_file.write(web_file.read())
             web_file.close()
             opened_pdf_file.close()
-
-            time.sleep(tsleep)
 
     def _soups_generator(self):
         idx = 0
@@ -117,9 +109,9 @@ class MexLegScrapper:
         return onclick_urls
 
     @classmethod
-    def _get_pdf_url_from_table(cls, iniciativa_url):
+    def _get_pdf_url_from_table(cls, iniciativa_url, tsleep=0.5):
 
-        soup_iniciativa = cls._get_page_soup(iniciativa_url, tsleep=0.5)
+        soup_iniciativa = cls._get_page_soup(iniciativa_url, tsleep=tsleep)
         urls_iniciativa = soup_iniciativa.find_all(href=True)
         urls_iniciativa = [x.get('href') for x in urls_iniciativa]
         urls_iniciativa = [x for x in urls_iniciativa if x.split('.')[-1]=='pdf']
