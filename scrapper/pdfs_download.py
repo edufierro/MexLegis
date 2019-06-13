@@ -55,15 +55,15 @@ class MexLegScrapper:
                            desc='Iniciativas',
                            total=self.main_table.shape[0]):
 
-            file_path = self.pdf_folder_path / row.iniciativa_id
-            opened_file = open(file_path, 'wb')
+            file_path = self.pdf_folder_path / '{}.pdf'.format(row.iniciativa_id)
+            opened_pdf_file = open(file_path, 'wb')
 
             pdf_url = self._get_pdf_url_from_table(row.onclicks)
-            web_file = urllib.urlopen(pdf_url)
+            web_file = urllib.request.urlopen(pdf_url)
 
-            opened_file.write(web_file.read())
+            opened_pdf_file.write(web_file.read())
             web_file.close()
-            pdf_url.close()
+            opened_pdf_file.close()
 
             time.sleep(tsleep)
 
