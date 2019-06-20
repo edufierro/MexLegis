@@ -2,13 +2,12 @@
 
 import os
 from pathlib import Path
-import click
 from utils.click_utlis import error
 
 
-def remove_temp(filepath):
+def remove_temp(file_path):
     try:
-        os.remove(filepath)
+        os.remove(file_path)
     except FileNotFoundError:
         pass
 
