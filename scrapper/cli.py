@@ -2,8 +2,10 @@
 
 import click
 from scrapper.pdfs_download import MexLegScrapper
+from scrapper.pdfs_to_txts import PDF2txt, supported_parsers
 from utils.file_utils import check_create_output_folder, \
     check_create_file_path
+
 
 @click.command()
 @click.option(u'--sil-url', u'-url', type=str, required=True,
@@ -17,14 +19,23 @@ from utils.file_utils import check_create_output_folder, \
               help=u'TXT folder name. Will be created inside data path')
 @click.option(u'--main-data-file', u'-main', type=str, required=True, default='MainTable.csv',
               help=u'Main table filename. Will be created')
-def scrape_bills(sil_url, data_path, pdfs_folder, txt_folder, main_data_file):
+@click.option(u'--parser-to-use', u'-parser', type=click.Choice(supported_parsers), default='pdftotext',
+              help=u'PDF parser to use')
+def scrape_bills(sil_url, data_path, pdfs_folder, txt_folder, main_data_file, parser_to_use):
 
-    main_data_file = check_create_file_path(data_path,main_data_file)
-    out_pdfs_folder_path = check_create_output_folder(data_path, pdfs_folder)
-    out_txts_folder_path = check_create_output_folder(data_path, txt_folder)
+    # main_data_file = check_create_file_path(data_path,main_data_file)
+    # out_pdfs_folder_path = check_create_output_folder(data_path, pdfs_folder)
+    # out_txts_folder_path = check_create_output_folder(data_path, txt_folder)
 
-    bills_scrapper = MexLegScrapper(sil_url, out_pdfs_folder_path, main_data_file)
-    bills_scrapper.create_main_table()
-    bills_scrapper.download_pdfs(tsleep=0.5)
+    # bills_scrapper = MexLegScrapper(sil_url, out_pdfs_folder_path, main_data_file)
+    # bills_scrapper.create_main_table()
+    # bills_scrapper.download_pdfs(tsleep=0.5)
 
+    import os
+    from pathlib import Path
+    main_data_file = Path(os.path.join(data_path,main_data_file))
+    out_pdfs_folder_path = Path(os.path.join(data_path, pdfs_folder))
+    out_txts_folder_path = Path(os.path.join(data_path, txt_folder))
 
+    txt_dumper = PDF2txt(out_pdfs_folder_path, out_txts_folder_path, main_data_file, parser_to_use)
+    txt_dumper.export_pdfs_to_text()

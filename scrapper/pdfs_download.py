@@ -39,7 +39,7 @@ class MexLegScrapper:
             self.main_table = self.main_table.append(page_table)
 
         self.main_table = self._assign_uudis_to_pandas_df(self.main_table)
-        self.main_table.to_csv(self.table_file_path)
+        self.main_table.to_csv(self.table_file_path, index=False)
 
     def download_pdfs(self, tsleep=2):
 
