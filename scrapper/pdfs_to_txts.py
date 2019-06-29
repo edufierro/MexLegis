@@ -6,7 +6,7 @@ import re
 import pandas as pd
 import subprocess
 from utils.general_utils import EmptyListError
-from utils.click_utlis import info, warn
+from utils.click_utlis import info, warn, error
 from utils.file_utils import remove_temp
 from tqdm import tqdm
 
@@ -35,7 +35,7 @@ class PDF2txt:
                 elif self.parser == 'pdftotext':
                     pages_text = self._read_pdf_file_pdftotext(current_pdf_file_path)
                 else:
-                    raise ValueError('Parser not supported. Select on of {}'.format(supported_parsers))
+                    error('Parser not supported. Select on of {}'.format(supported_parsers), fatal=True)
             except EmptyListError:
                 warn('File {} is not machine readable. Skipping'.format(row.iniciativa_id))
                 self.main_table.ix[index, 'Status'] = 'Not machine readable'

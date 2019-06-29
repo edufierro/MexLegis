@@ -5,8 +5,9 @@ class EmptyListError(Exception):
     pass
 
 
-class PDFNotFoundError(Exception)
+class PDFNotFoundError(Exception):
     pass
 
-class MoreThanOnePDFError(Exception)
+
+class MoreThanOnePDFError(Exception):
     pass

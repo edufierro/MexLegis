@@ -56,13 +56,13 @@ class MexLegScrapper:
 
             try:
                 pdf_url = self._get_pdf_url_from_table(row.onclicks, tsleep=tsleep)
-            except PDFNotFoundError as e:
+            except PDFNotFoundError:
                 self.main_table.ix[index, 'Status'] = 'No PDF found'
-                warn(e)
+                warn('PDFNotFoundError error for {}'.format(row.iniciativa_id))
                 continue
-            except MoreThanOnePDFError as e:
+            except MoreThanOnePDFError:
                 self.main_table.ix[index, 'Status'] = 'More than one PDF found..'
-                warn(e)
+                warn('MoreThanOnePDFError error for {}'.format(row.iniciativa_id))
                 continue
             except:
                 self.main_table.ix[index, 'Status'] = 'Unrecognized error...'
