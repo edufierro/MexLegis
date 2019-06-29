@@ -64,6 +64,8 @@ class MexLegScrapper:
                 self.main_table.ix[index, 'Status'] = 'More than one PDF found..'
                 warn('MoreThanOnePDFError error for {}'.format(row.iniciativa_id))
                 continue
+            except KeyboardInterrupt:
+                error('Aborted!', fatal=True)
             except:
                 self.main_table.ix[index, 'Status'] = 'Unrecognized error...'
                 warn('Unrecognized error for {}'.format(row.iniciativa_id))
@@ -74,6 +76,8 @@ class MexLegScrapper:
             web_file.close()
             opened_pdf_file.close()
             self.main_table['Status'] = 'PDF Downloaded'
+
+        self.main_table.to_csv(self.table_file_path, index=False)
 
     def _soups_generator(self):
         idx = 0
