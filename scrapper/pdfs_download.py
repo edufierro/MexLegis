@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 from utils.click_utlis import info, error, warn
+from utils.general_utils import PDFNotFoundError, MoreThanOnePDFError
 
 
 class MexLegScrapper:
@@ -44,20 +45,35 @@ class MexLegScrapper:
     def download_pdfs(self, tsleep=2):
 
         info('Downloading pdfs:')
+        self.main_table['Status'] = 'None'
 
-        for _, row in tqdm(self.main_table.iterrows(),
-                           desc='Iniciativas',
-                           total=self.main_table.shape[0]):
+        for index, row in tqdm(self.main_table.iterrows(),
+                               desc='Iniciativas',
+                               total=self.main_table.shape[0]):
 
             file_path = self.pdf_folder_path / '{}.pdf'.format(row.iniciativa_id)
             opened_pdf_file = open(file_path, 'wb')
 
-            pdf_url = self._get_pdf_url_from_table(row.onclicks, tsleep=tsleep)
+            try:
+                pdf_url = self._get_pdf_url_from_table(row.onclicks, tsleep=tsleep)
+            except PDFNotFoundError as e:
+                self.main_table.ix[index, 'Status'] = 'No PDF found'
+                warn(e)
+                continue
+            except MoreThanOnePDFError as e:
+                self.main_table.ix[index, 'Status'] = 'More than one PDF found..'
+                warn(e)
+                continue
+            except:
+                self.main_table.ix[index, 'Status'] = 'Unrecognized error...'
+                warn('Unrecognized error for {}'.format(row.iniciativa_id))
+                continue
             web_file = urllib.request.urlopen(pdf_url)
 
             opened_pdf_file.write(web_file.read())
             web_file.close()
             opened_pdf_file.close()
+            self.main_table['Status'] = 'PDF Downloaded'
 
     def _soups_generator(self):
         idx = 0
@@ -117,10 +133,10 @@ class MexLegScrapper:
         urls_iniciativa = [x for x in urls_iniciativa if x.split('.')[-1]=='pdf']
 
         if len(urls_iniciativa) > 1:
-            raise AttributeError('More pdfs found in {}'.format(iniciativa_url))
+            raise MoreThanOnePDFError('More pdfs found in {}'.format(iniciativa_url))
 
         if len(urls_iniciativa) == 0:
-            raise AttributeError('No pdf found in {}'.format(iniciativa_url))
+            raise PDFNotFoundError('No pdf found in {}'.format(iniciativa_url))
 
         return urls_iniciativa[0]
 

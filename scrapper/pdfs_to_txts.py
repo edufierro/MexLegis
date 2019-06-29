@@ -21,7 +21,6 @@ class PDF2txt:
         self.txt_folder_path = txt_folder_path
         self.table_file_path = table_file_path
         self.main_table = self._read_main_table()
-        self.main_table['Status'] = 'Scrapped'
         self.parser = parser
 
     def export_pdfs_to_text(self):
