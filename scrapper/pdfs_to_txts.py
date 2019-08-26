@@ -148,15 +148,3 @@ class PDF2txt:
         str_text = str_text.replace('\n ', '\n')
         str_text = str_text.replace('\x0c', '')
         return str_text
-
-
-if __name__ == '__main__':
-
-    # Example one: Image but MR
-    pdf_example1 = Path('/Users/eduardofierro/Desktop/data/pdfs/d8cefefe8e1311e9be2fc8e0eb17424f.pdf')
-
-    # Example two: Not MR
-    pdf_example2 = Path('/Users/eduardofierro/Desktop/data/pdfs/d8cf0caa8e1311e9be2fc8e0eb17424f.pdf')
-
-    # Example three: Tipical SIL doc
-    pdf_example3 = Path('/Users/eduardofierro/Desktop/data/pdfs/d8cf0db88e1311e9be2fc8e0eb17424f.pdf')

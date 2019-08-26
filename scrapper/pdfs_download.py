@@ -134,7 +134,7 @@ class MexLegScrapper:
         soup_iniciativa = cls._get_page_soup(iniciativa_url, tsleep=tsleep)
         urls_iniciativa = soup_iniciativa.find_all(href=True)
         urls_iniciativa = [x.get('href') for x in urls_iniciativa]
-        urls_iniciativa = [x for x in urls_iniciativa if x.split('.')[-1]=='pdf']
+        urls_iniciativa = [x for x in urls_iniciativa if x.split('.')[-1] == 'pdf']
 
         if len(urls_iniciativa) > 1:
             raise MoreThanOnePDFError('More pdfs found in {}'.format(iniciativa_url))
