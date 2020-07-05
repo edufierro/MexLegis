@@ -31,7 +31,7 @@ class PDF2txt:
             current_pdf_file_path = self.pdf_folder_path / '{}.pdf'.format(row.iniciativa_id)
             try:
                 if self.parser == 'PyPDF2':
-                    pages_text = self._read_pdf_file_pdftotext(current_pdf_file_path)
+                    pages_text = self._read_pdf_file_PyPDF2(current_pdf_file_path)
                 elif self.parser == 'pdftotext':
                     pages_text = self._read_pdf_file_pdftotext(current_pdf_file_path)
                 else:

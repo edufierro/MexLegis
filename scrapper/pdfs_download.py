@@ -54,6 +54,7 @@ class MexLegScrapper:
             file_path = self.pdf_folder_path / '{}.pdf'.format(row.iniciativa_id)
             opened_pdf_file = open(file_path, 'wb')
 
+            #TODO: Contain logic for download pdf and parsing file
             try:
                 pdf_url = self._get_pdf_url_from_table(row.onclicks, tsleep=tsleep)
             except PDFNotFoundError:
@@ -70,7 +71,18 @@ class MexLegScrapper:
                 self.main_table.ix[index, 'Status'] = 'Unrecognized error...'
                 warn('Unrecognized error for {}'.format(row.iniciativa_id))
                 continue
-            web_file = urllib.request.urlopen(pdf_url)
+
+            try:
+                web_file = urllib.request.urlopen(pdf_url)
+            except TimeoutError:
+                # TODO: Add retry logic, at least 3 times.
+                warn('TimeoutError error for {}'.format(row.iniciativa_id))
+                self.main_table.ix[index, 'Status'] = 'URL Timed out...'
+                continue
+            except:
+                warn('Unrecognized error while getting pdf for {}'.format(row.iniciativa_id))
+                self.main_table.ix[index, 'Status'] = 'Unrecognized error...'
+                continue
 
             opened_pdf_file.write(web_file.read())
             web_file.close()
