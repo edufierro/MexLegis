@@ -23,10 +23,6 @@ class MexLegScrapper:
 
         self.main_table = pd.DataFrame()
 
-    def get_post_url(self):
-        # TODO: Get url_to_scrape automatically from self.main_page, and not have to pass it manually
-        raise NotImplementedError
-
     def create_main_table(self):
         soups_generator = self._soups_generator()
 
