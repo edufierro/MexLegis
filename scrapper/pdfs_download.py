@@ -106,7 +106,7 @@ class MexLegScrapper:
 
     @classmethod
     def _get_soup_and_continue_token(cls, web_page):
-        page_soup = cls._get_page_soup(web_page)
+        page_soup = cls.get_page_soup(web_page)
         is_bad = page_soup.find('td', {"class": "simpletextorange"})
         if is_bad is not None:
             return None, False
@@ -139,7 +139,7 @@ class MexLegScrapper:
     @classmethod
     def _get_pdf_url_from_table(cls, iniciativa_url, tsleep=0.5):
 
-        soup_iniciativa = cls._get_page_soup(iniciativa_url, tsleep=tsleep)
+        soup_iniciativa = cls.get_page_soup(iniciativa_url, tsleep=tsleep)
         urls_iniciativa = soup_iniciativa.find_all(href=True)
         urls_iniciativa = [x.get('href') for x in urls_iniciativa]
         urls_iniciativa = [x for x in urls_iniciativa if x.split('.')[-1] == 'pdf']
@@ -167,7 +167,7 @@ class MexLegScrapper:
         return pandas_df
 
     @staticmethod
-    def _get_page_soup(current_url, timeout=200, tsleep=2.0):
+    def get_page_soup(current_url, timeout=200, tsleep=2.0):
 
         # TODO: Handle gracefully HTTPErrors and implement retrials with higher timouts and tsleep.
 
