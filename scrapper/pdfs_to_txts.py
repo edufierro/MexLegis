@@ -51,6 +51,11 @@ class PDF2txt:
                 self.main_table.ix[index, 'Status'] = 'OSError'
                 remove_temp(str(current_pdf_file_path).replace('.pdf', '.txt'))
                 continue
+            except Exception as e:
+                warn('OS error in file {}. Unrecognized error {}. Skipping.'.format(row.iniciativa_id, e))
+                self.main_table.ix[index, 'Status'] = 'General Error'
+                remove_temp(str(current_pdf_file_path).replace('.pdf', '.txt'))
+                continue
 
             txt_file_path = self.txt_folder_path / '{}.txt'.format(row.iniciativa_id)
             self._write_file(pages_text, txt_file_path)
